@@ -304,7 +304,9 @@ mod tests {
 }
 
 mod string_pair {
-    use std::iter::Peekable;
+    use std::iter::{Peekable, Rev};
+
+    use unicode_segmentation::{Graphemes, UnicodeSegmentation};
 
     /// A pair of right-trimmed strings.
     pub struct StringPair {
@@ -313,25 +315,26 @@ mod string_pair {
         pub lengths: [usize; 2],
     }
 
+    fn graphemes(s: &str) -> Graphemes {
+        UnicodeSegmentation::graphemes(s, true)
+    }
+
     impl StringPair {
         pub fn new(s0: &str, s1: &str) -> StringPair {
-            let common_prefix_length = StringPair::common_prefix_length(s0.chars(), s1.chars());
-            let (common_suffix_length, trailing_whitespace) =
-                StringPair::suffix_data(s0.chars(), s1.chars());
+            let (s0, s1) = (graphemes(s0), graphemes(s1));
+            let common_prefix_length = StringPair::common_prefix_length(s0, s1);
+            let (common_suffix_length, trailing_whitespace) = StringPair::suffix_data(s0, s1);
             StringPair {
                 common_prefix_length,
                 common_suffix_length,
                 lengths: [
-                    s0.len() - trailing_whitespace[0],
-                    s1.len() - trailing_whitespace[1],
+                    s0.count() - trailing_whitespace[0],
+                    s1.count() - trailing_whitespace[1],
                 ],
             }
         }
 
-        fn common_prefix_length(
-            s0: impl Iterator<Item = char>,
-            s1: impl Iterator<Item = char>,
-        ) -> usize {
+        fn common_prefix_length(s0: Graphemes, s1: Graphemes) -> usize {
             let mut i = 0;
             for (c0, c1) in s0.zip(s1) {
                 if c0 != c1 {
@@ -344,10 +347,7 @@ mod string_pair {
         }
 
         /// Return common suffix length and number of trailing whitespace characters on each string.
-        fn suffix_data(
-            s0: impl DoubleEndedIterator<Item = char>,
-            s1: impl DoubleEndedIterator<Item = char>,
-        ) -> (usize, [usize; 2]) {
+        fn suffix_data(s0: Graphemes, s1: Graphemes) -> (usize, [usize; 2]) {
             let mut s0 = s0.rev().peekable();
             let mut s1 = s1.rev().peekable();
             let n0 = StringPair::consume_whitespace(&mut s0);
@@ -357,7 +357,7 @@ mod string_pair {
         }
 
         /// Consume leading whitespace; return number of characters consumed.
-        fn consume_whitespace(s: &mut Peekable<impl Iterator<Item = char>>) -> usize {
+        fn consume_whitespace(s: &mut Peekable<Rev<Graphemes>>) -> usize {
             let mut i = 0;
             loop {
                 match s.peek() {
