@@ -56,8 +56,8 @@ matrix:
 
 sudo: required
 
-before_install:
-  - pwd
+# before_install:
+  - cd src/bat
   - ci/before_install.bash
 
 env:
@@ -73,9 +73,11 @@ install:
   - if [[ $TRAVIS_OS_NAME = linux && $HOST != $TARGET ]]; then rustup target add $TARGET; fi
 
 script:
+  - cd src/bat
   - ci/script.bash
 
 before_deploy:
+  - cd src/bat
   - bash ci/before_deploy.bash
 
 deploy:
