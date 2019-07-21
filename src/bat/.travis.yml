@@ -51,7 +51,6 @@ deploy:
   # don't delete artifacts from previous stage
   skip_cleanup: true
   on:
-    tags: true
     branch: windowsbuild
     # deploy only on stable channel that has TARGET env variable sets
     condition: $TRAVIS_RUST_VERSION = stable && $TARGET != ""
