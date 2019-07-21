@@ -57,6 +57,7 @@ matrix:
 sudo: required
 
 before_install:
+  - pwd
   - ci/before_install.bash
 
 env:
