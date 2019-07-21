@@ -56,7 +56,7 @@ matrix:
 
 sudo: required
 
-# before_install:
+before_install:
   - cd src/bat
   - ci/before_install.bash
 
